@@ -1,360 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Neuraxis</title>
-
-<style>
-:root{
-  --bg:#0f172a;
-  --panel:#020617;
-  --text:white;
-}
-
-.light{
-  --bg:#ffffff;
-  --panel:#f1f5f9;
-  --text:black;
-}
-
-body{
-  margin:0;
-  font-family:Arial;
-  background:var(--bg);
-  color:var(--text);
-  display:flex;
-  height:100vh;
-}
-
-/* SIDEBAR */
-.sidebar{
-  width:260px;
-  background:var(--panel);
-  position:fixed;
-  height:100%;
-  left:-260px;
-  transition:.3s;
-  padding:15px;
-  z-index:5;
-}
-.sidebar.open{left:0;}
-
-.logo{font-size:20px;margin-bottom:10px;}
-
-.chat-item{
-  padding:10px;
-  background:#1e293b;
-  margin-bottom:5px;
-  border-radius:8px;
-  cursor:pointer;
-}
-
-/* SETTINGS */
-.settings{
-  position:fixed;
-  bottom:15px;
-  left:15px;
-  font-size:22px;
-  cursor:pointer;
-  z-index:10;
-}
-
-/* MAIN */
-.main{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-}
-
-/* TOP */
-.topbar{
-  padding:10px;
-}
-
-.menu-btn{
-  font-size:20px;
-  background:#2563eb;
-  color:white;
-  border:none;
-  padding:8px 12px;
-  border-radius:8px;
-  cursor:pointer;
-}
-
-/* CHAT */
-.chat{
-  flex:1;
-  overflow-y:auto;
-  padding:20px 120px;
-  z-index:1;
-}
-
-.msg{
-  max-width:800px;
-  margin-bottom:15px;
-  padding:14px;
-  border-radius:12px;
-  white-space:pre-wrap;
-}
-
-.user{background:#2563eb;margin-left:auto;}
-.ai{background:#1e293b;}
-
-/* INPUT */
-.input-area{
-  position:sticky;
-  bottom:0;
-  display:flex;
-  padding:10px;
-  background:var(--panel);
-  z-index:2;
-}
-
-.file{
-  margin-right:10px;
-}
-
-input{
-  flex:1;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  background:#1e293b;
-  color:white;
-}
-
-.send{
-  margin-left:10px;
-  padding:0 15px;
-  border:none;
-  border-radius:10px;
-  background:#2563eb;
-  color:white;
-}
-
-/* CODE */
-pre{
-  background:black;
-  padding:10px;
-  border-radius:10px;
-  position:relative;
-  z-index:1;
-}
-
-.copy-btn{
-  position:absolute;
-  top:5px;
-  right:5px;
-  background:#2563eb;
-  border:none;
-  color:white;
-  padding:5px;
-  cursor:pointer;
-}
-
-/* DOT */
-.dot{
-  width:6px;height:6px;
-  background:var(--text);
-  display:inline-block;
-  border-radius:50%;
-  animation:blink 1s infinite;
-}
-
-@keyframes blink{
-  0%{opacity:0}
-  50%{opacity:1}
-  100%{opacity:0}
-}
-
-/* MODAL */
-.modal{
-  position:fixed;
-  top:0;left:0;
-  width:100%;height:100%;
-  background:rgba(0,0,0,.5);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:20;
-}
-
-.box{
-  background:var(--panel);
-  padding:20px;
-  border-radius:10px;
-  width:300px;
-}
-
-.option{
-  padding:8px;
-  cursor:pointer;
-}
-</style>
-</head>
-
-<body>
-
-<div class="sidebar" id="sidebar">
-  <div class="logo">Neuraxis</div>
-  <button onclick="newChat()">➕ Новый чат</button>
-  <div id="chats"></div>
-</div>
-
-<div class="settings" onclick="openSettings()">⚙️</div>
-
-<div class="main">
-
-<div class="topbar">
-  <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-</div>
-
-<div id="chat" class="chat"></div>
-
-<div class="input-area">
-  <input type="file" class="file">
-  <input id="message" placeholder="Напиши..." onkeydown="if(event.key==='Enter') sendMessage()">
-  <button class="send" onclick="sendMessage()">➤</button>
-</div>
-
-</div>
-
-<!-- SETTINGS -->
-<div class="modal" id="modal">
-  <div class="box">
-
-    <h3>Настройки</h3>
-
-    <p>Тема:</p>
-    <div class="option" onclick="setTheme('default')">По умолчанию</div>
-    <div class="option" onclick="setTheme('light')">Светлая</div>
-    <div class="option" onclick="setTheme('dark')">Тёмная</div>
-
-    <p>Язык:</p>
-    <div class="option" onclick="setLang('ru')">Русский</div>
-    <div class="option" onclick="setLang('ua')">Украинский</div>
-    <div class="option" onclick="setLang('en')">English</div>
-
-    <br>
-    <button onclick="closeSettings()">Закрыть</button>
-
-  </div>
-</div>
-
-<script>
-let chats = JSON.parse(localStorage.getItem("chats")) || [];
-let currentIndex = 0;
-
-function save(){
-  localStorage.setItem("chats", JSON.stringify(chats));
-}
-
-function toggleSidebar(){
-  document.getElementById("sidebar").classList.toggle("open");
-}
-
-function openSettings(){
-  document.getElementById("modal").style.display="flex";
-}
-
-function closeSettings(){
-  document.getElementById("modal").style.display="none";
-}
-
-function setTheme(t){
-  if(t==="light"){
-    document.body.classList.add("light");
-  }else{
-    document.body.classList.remove("light");
-  }
-}
-
-function setLang(l){
-  alert("Язык сохранён: "+l);
-}
-
-function newChat(){
-  chats.push({title:"Новый чат",messages:[]});
-  currentIndex=chats.length-1;
-  renderChats();
-  renderMessages();
-  save();
-}
-
-function renderChats(){
-  const el=document.getElementById("chats");
-  el.innerHTML="";
-  chats.forEach((c,i)=>{
-    el.innerHTML+=`<div class="chat-item" onclick="openChat(${i})">${c.title}</div>`;
-  });
-}
-
-function openChat(i){
-  currentIndex=i;
-  renderMessages();
-}
-
-function renderMessages(){
-  const chat=document.getElementById("chat");
-  chat.innerHTML="";
-  chats[currentIndex]?.messages.forEach(m=>{
-    chat.innerHTML+=`<div class="msg ${m.role}">${formatText(m.text)}</div>`;
-  });
-}
-
-function formatText(text){
-  return text.replace(/```(.*?)```/gs,(m,code)=>{
-    return `<pre><button class="copy-btn" onclick="copyCode(this)">📋</button>${code}</pre>`;
-  });
-}
-
-function copyCode(btn){
-  const text=btn.parentElement.innerText.replace("📋","");
-  navigator.clipboard.writeText(text);
-}
-
-async function sendMessage(){
-  const input=document.getElementById("message");
-  const msg=input.value;
-  if(!msg)return;
-
-  if(!chats[currentIndex]) newChat();
-
-  chats[currentIndex].messages.push({role:"user",text:msg});
-  renderMessages();
-  input.value="";
-
-  const chat=document.getElementById("chat");
-  const aiDiv=document.createElement("div");
-  aiDiv.className="msg ai";
-  aiDiv.innerHTML="<span class='dot'></span>";
-  chat.appendChild(aiDiv);
-
-  try{
-    const res=await fetch("https://ai-backend-4txk.onrender.com/chat",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({message:msg})
-    });
-
-    const data=await res.json();
-    const reply=data.choices?.[0]?.message?.content || "Ошибка";
-
-    chats[currentIndex].messages.push({role:"ai",text:reply});
-    if(chats[currentIndex].title==="Новый чат"){
-      chats[currentIndex].title=msg.slice(0,20);
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Animation</title>
+  <style>
+    body {
+      background-color: transparent;
+      color: black;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
     }
 
-    save();
-    renderChats();
-    renderMessages();
+    .typing-container {
+      display: flex;
+      flex-direction: column;
+      font-size: 36px;
+      font-weight: 600;
+      position: relative;
+    }
 
-  }catch{
-    aiDiv.innerText="Ошибка";
-  }
-}
+    .cursor {
+      width: 12px;
+      height: 12px;
+      background-color: black;
+      border-radius: 50%;
+      position: absolute;
+      animation: blink 0.5s infinite;
+    }
 
-renderChats();
-</script>
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="typing-container">
+    <div class="cursor" id="cursor"></div>
+    <div id="typed-text"></div>
+  </div>
 
+  <script>
+    const text = [
+      "Тут ви можете пограти в різні ігри, а саме:",
+      "- Шлях Світлячка",
+      "- Космічна битва",
+      "- Змійка",
+      "- Вгадай число",
+      "- Хрестики-нуліки",
+      "- Пінг-понг"
+    ];
+
+    const typedTextElement = document.getElementById("typed-text");
+    const cursorElement = document.getElementById("cursor");
+    let lineIndex = 0;
+    let charIndex = 0;
+
+    function updateCursorPosition() {
+      const currentLine = typedTextElement.lastElementChild;
+      if (currentLine) {
+        const rect = currentLine.getBoundingClientRect();
+        const textWidth = currentLine.offsetWidth;
+        cursorElement.style.top = `${rect.top + window.scrollY}px`;
+        cursorElement.style.left = `${rect.left + textWidth}px`;
+      }
+    }
+
+    function typeText() {
+      if (lineIndex < text.length) {
+        if (charIndex === 0) {
+          const newLine = document.createElement("div");
+          typedTextElement.appendChild(newLine);
+        }
+
+        const currentLine = typedTextElement.lastElementChild;
+
+        if (charIndex < text[lineIndex].length) {
+          currentLine.textContent += text[lineIndex][charIndex];
+          charIndex++;
+          updateCursorPosition();
+          setTimeout(typeText, 100);
+        } else {
+          lineIndex++;
+          charIndex = 0;
+          setTimeout(typeText, 300);
+        }
+      } else {
+        cursorElement.style.display = "none";
+      }
+    }
+
+    updateCursorPosition();
+    typeText();
+  </script>
 </body>
 </html>
